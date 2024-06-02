@@ -34,23 +34,33 @@ create_todos_table = """CREATE TABLE IF NOT EXISTS todos(
 """
 
 
+def commit(func):
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        conn.commit()
+        return result
+
+    return wrapper
+
+
 def create_table():
     cur.execute(create_users_table)
     cur.execute(create_todos_table)
     conn.commit()
 
 
+@commit
 def migrate():
     insert_into_users = """
     INSERT INTO users (username, password, role, status,login_try_count) 
-    VALUES ('Admin','admin123','SUPERADMIN','ACTIVE',0);
+    VALUES (%s, %s, %s, %s, %s);
     """
+    data = ('Admin', utils.hash_password('123'), 'ADMIN', 'ACTIVE', 0)
     cur.execute(insert_into_users)
-    conn.commit()
 
 
 def init():
-    create_table()
+    # create_table()
     migrate()
 
 
